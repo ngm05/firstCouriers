@@ -12,7 +12,7 @@ from backend.app.services.db import origin
 app = FastAPI(title="First")
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["https://firstcouriers.onrender.com/"], 
+    allow_origins=["https://firstcouriers.vercel.app"], 
     allow_methods=["*"],
     allow_headers=["*"],
 )
