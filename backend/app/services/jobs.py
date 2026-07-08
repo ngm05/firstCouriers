@@ -15,8 +15,8 @@ def create_job(job: JobCreate) -> Dict:
         "contents": job.contents,
         "status": JobStatus.details_pending.value,
         "notes": job.notes,
-        "c_date": job.c_date,
-        "d_date": job.d_date,
+        "c_date": job.c_date.isoformat(),
+        "d_date": job.d_date.isoformat(),
     }
     job_result = supabase.table("jobs").insert(job_row).execute()
     if not job_result.data:
