@@ -7,7 +7,6 @@ from backend.app.models.other_models import LegAddress, AddressResponse, Supplie
 from backend.app.services.jobs import create_job, list_jobs
 from backend.app.services.other import _create_address, _search_addresses, _create_supplier, _search_suppliers
 from backend.other.job_helpers import _create_client, _search_clients
-from backend.app.services.db import origin
 
 app = FastAPI(title="First")
 app.add_middleware(
