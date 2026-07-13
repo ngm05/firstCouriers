@@ -30,36 +30,47 @@ function sameDay(a, b) {
   return a.getFullYear() === b.getFullYear() && a.getMonth() === b.getMonth() && a.getDate() === b.getDate();
 }
 
-function effectiveDate(job) {
-  const legTimes = (job.legs || [])
-    .map((l) => l.c_time || l.d_time)
-    .filter(Boolean)
-    .map((t) => new Date(t));
-  if (legTimes.length > 0) {
-    return new Date(Math.min(...legTimes.map((d) => d.getTime())));
-  }
-  return new Date(job.created_at);
+function toDateOnly(value) {
+  if (!value) return null;
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return null;
+  return new Date(date.getFullYear(), date.getMonth(), date.getDate());
 }
 
-function inWindow(date, windowKey) {
+function getJobDateRange(job) {
+  const start = toDateOnly(job.c_date);
+  const end = toDateOnly(job.d_date);
+
+  if (!start) return { start: null, end: null };
+  if (!end) return { start, end: start };
+  if (end < start) return { start, end: start };
+  return { start, end };
+}
+
+function inWindow(job, windowKey) {
   if (windowKey === "all") return true;
+
+  const { start, end } = getJobDateRange(job);
+  if (!start || !end) return false;
+
   const now = new Date();
   const today0 = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-  if (windowKey === "today") return sameDay(date, now);
+
+  if (windowKey === "today") return start <= today0 && end >= today0;
   if (windowKey === "tomorrow") {
     const tmrw = new Date(today0);
     tmrw.setDate(tmrw.getDate() + 1);
-    return sameDay(date, tmrw);
+    return start <= tmrw && end >= tmrw;
   }
   if (windowKey === "next7") {
-    const end = new Date(today0);
-    end.setDate(end.getDate() + 7);
-    return date >= today0 && date <= end;
+    const windowEnd = new Date(today0);
+    windowEnd.setDate(windowEnd.getDate() + 7);
+    return start <= windowEnd && end >= today0;
   }
   if (windowKey === "nextMonth") {
-    const end = new Date(today0);
-    end.setDate(end.getDate() + 30);
-    return date >= today0 && date <= end;
+    const windowEnd = new Date(today0);
+    windowEnd.setDate(windowEnd.getDate() + 30);
+    return start <= windowEnd && end >= today0;
   }
   return true;
 }
@@ -102,7 +113,7 @@ export default function Dashboard() {
   }, []);
 
   const filteredJobs = useMemo(() => {
-    return jobs.filter((j) => inWindow(effectiveDate(j), windowKey));
+    return jobs.filter((job) => inWindow(job, windowKey));
   }, [jobs, windowKey]);
 
   const grouped = useMemo(() => {
