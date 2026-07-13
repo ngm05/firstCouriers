@@ -101,6 +101,8 @@ export default function NewJobForm() {
         job_type: jobType,
         contents: contents || null,
         notes: notes || null,
+        c_address_id: cAddressId,
+        d_address_id: dAddressId,
         c_date: cDate ? new Date(cDate).toISOString() : null,
         d_date: dDate ? new Date(dDate).toISOString() : null,
         legs: legPayloads,

@@ -55,6 +55,8 @@ class JobCreate(BaseModel):
     notes: Optional[str] = None
     c_date: Optional[datetime] = None
     d_date: Optional[datetime] = None
+    c_address_id: Optional[UUID] = None
+    d_address_id: Optional[UUID] = None
     legs: List[JobLegCreate] = Field(..., min_length=1)
 
 
@@ -65,6 +67,10 @@ class JobResponse(BaseModel):
     contents: Optional[str] = None
     status: JobStatus
     created_at: datetime
+    d_date: Optional[datetime] = None
+    c_date: Optional[datetime] = None
+    d_address: Optional[UUID] = None
+    c_address: Optional[UUID] = None
     notes: Optional[str] = None
 
 

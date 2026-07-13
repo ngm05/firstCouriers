@@ -15,6 +15,8 @@ def create_job(job: JobCreate) -> Dict:
         "contents": job.contents,
         "status": JobStatus.details_pending.value,
         "notes": job.notes,
+        "c_address": str(job.c_address_id) if job.c_address_id else None,
+        "d_address": str(job.d_address_id) if job.d_address_id else None,
         "c_date": job.c_date.isoformat(),
         "d_date": job.d_date.isoformat(),
     }
@@ -22,9 +24,19 @@ def create_job(job: JobCreate) -> Dict:
     if not job_result.data:
         raise RuntimeError("Failed to create job")
 
+    suppliers_missing = False
+    has_c_address = False
+    has_d_address = False
+
     leg_rows = []
     for leg in job.legs:
         leg_status = LegStatus.scheduled if leg.supplier_id else LegStatus.unassigned
+        if not leg.supplier_id:
+            suppliers_missing = True
+        if leg.c_address_id == job.c_address_id:
+            has_c_address = True
+        if leg.d_address_id == job.d_address_id:
+            has_d_address = True
         leg_rows.append({
             "ref_number": ref_number,
             "leg_sequence": leg.leg_sequence,
@@ -36,7 +48,10 @@ def create_job(job: JobCreate) -> Dict:
             "d_time": leg.d_time.isoformat() if leg.d_time else None,
         })
 
-    legs_result = supabase.table("job_legs").insert(leg_rows).execute()
+    legs_result = supabase.table("job_legs").insert(leg_rows).execute() 
+    if not suppliers_missing and has_c_address and has_d_address:
+        supabase.table("jobs").update({"status": JobStatus.scheduled.value}).eq("ref_number", ref_number).execute()
+
     if not legs_result.data:
         # Roll back the job row so we don't leave an orphaned job with no legs
         supabase.table("jobs").delete().eq("ref_number", ref_number).execute()
